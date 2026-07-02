@@ -38,6 +38,11 @@ variable "control_plane_count" {
   description = "Number of control plane nodes."
   type        = number
   default     = 3
+
+  validation {
+    condition     = var.control_plane_count >= 3 && var.control_plane_count % 2 == 1
+    error_message = "control_plane_count must be odd and at least 3 (required for etcd quorum/leader election)."
+  }
 }
 
 variable "talos_version" {
