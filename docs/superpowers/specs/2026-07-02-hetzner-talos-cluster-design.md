@@ -61,6 +61,39 @@ which the pure-OpenTofu constraint rules out. Approaches considered:
 - State contains cluster secrets (machine secrets, kubeconfig) — state stays
   local and gitignored.
 
+## Revision 2 (same day): private network, SSH-only firewall
+
+Requirements update: nodes and LB communicate over a private network; nodes
+keep dual-stack public IPs (IPv6-only was considered but rejected: ghcr.io,
+which hosts Talos system images, has no IPv6); a Hetzner firewall allows
+nothing but SSH from the public internet; all other external access goes
+through the load balancer.
+
+Key consequences and decisions:
+
+- **Config via user_data instead of Talos API.** The firewall blocks public
+  port 50000, so the initial machine config cannot be applied over the
+  network. Talos' hcloud platform reads the machine config from Hetzner
+  user_data (official guide pattern). This also removes the unauthenticated
+  maintenance-mode window entirely — the firewall is attached at creation.
+- **Private network** 10.0.0.0/16, subnet 10.0.1.0/24; nodes 10.0.1.11+,
+  LB 10.0.1.5. Hetzner metadata only configures the public eth0, so the
+  machine config adds `eth1` with DHCP (hcloud serves the assigned private
+  IP). `etcd.advertisedSubnets` and `kubelet.nodeIP.validSubnets` pin
+  inter-node traffic to the private subnet. LB targets use private IPs.
+- **All operator access via the LB**: services 6443 (Kubernetes API) and
+  50000 (Talos API, mTLS; LB IPs added to `machine.certSANs`). Talos
+  operations set `endpoint = <LB>` and `node = <private IP>`, using apid's
+  request routing. Bootstrap waits until the Hetzner API reports all LB
+  targets healthy on port 50000.
+- **Day-2 config changes** flow through `talos_machine_configuration_apply`
+  resources pointed at the LB (initially a no-op — nodes already booted with
+  the same config). `user_data` is in `ignore_changes` so config edits do not
+  force server replacement.
+- Firewalls don't filter private network traffic, so LB→node and node→node
+  traffic is unaffected. Port 22 stays open for the rescue-mode provisioning
+  path and future recovery; Talos itself has no SSH.
+
 ## Testing / verification
 
 - `tofu fmt`, `tofu validate`, `tofu plan` before apply.

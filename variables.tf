@@ -10,6 +10,24 @@ variable "location" {
   default     = "fsn1"
 }
 
+variable "network_zone" {
+  description = "Hetzner network zone for the private subnet; must contain var.location."
+  type        = string
+  default     = "eu-central"
+}
+
+variable "network_cidr" {
+  description = "IP range of the private network."
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "subnet_cidr" {
+  description = "IP range of the subnet for nodes and load balancer; must be within var.network_cidr."
+  type        = string
+  default     = "10.0.1.0/24"
+}
+
 variable "server_type" {
   description = "Hetzner server type for the control plane nodes."
   type        = string
