@@ -37,13 +37,19 @@ resource "talos_machine_configuration_apply" "control_plane" {
   machine_configuration_input = data.talos_machine_configuration.control_plane.machine_configuration
   node                        = hcloud_server.control_plane[count.index].ipv4_address
 
+  # The generated config already contains a HostnameConfig document
+  # (auto: stable); 'auto' and 'hostname' are mutually exclusive, so the
+  # document must be deleted before adding one with an explicit hostname.
   config_patches = [
     yamlencode({
-      machine = {
-        network = {
-          hostname = hcloud_server.control_plane[count.index].name
-        }
-      }
+      apiVersion = "v1alpha1"
+      kind       = "HostnameConfig"
+      "$patch"   = "delete"
+    }),
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "HostnameConfig"
+      hostname   = hcloud_server.control_plane[count.index].name
     }),
   ]
 

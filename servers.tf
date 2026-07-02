@@ -53,8 +53,17 @@ resource "hcloud_server" "control_plane" {
       "wget -q -O- '${local.talos_image_url}' | xz -dc | dd of=/dev/sda bs=4M conv=fsync status=none",
       "sync",
       "echo 'Done, rebooting into Talos maintenance mode'",
-      "nohup sh -c 'sleep 2 && reboot' >/dev/null 2>&1 &",
+      # Detached via PID 1: an in-session background reboot does not survive
+      # the SSH session teardown when the provisioner disconnects.
+      "systemd-run --on-active=2 systemctl reboot",
     ]
+  }
+
+  # The Talos provider fails immediately on "connection refused", so hold the
+  # resource until the node has rebooted into Talos and the machine API is up.
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "timeout 300 bash -c 'until (exec 3<>/dev/tcp/${self.ipv4_address}/50000) 2>/dev/null; do sleep 5; done'"
   }
 
   lifecycle {
