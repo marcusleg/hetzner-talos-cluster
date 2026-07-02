@@ -20,6 +20,23 @@ schedulable for regular workloads — there are no dedicated workers.
   rescue-system provisioning/recovery path — Talos itself has no SSH
 - `cluster.allowSchedulingOnControlPlanes: true` — no control plane taints
 
+## Monthly cost
+
+Prices from the Hetzner Cloud pricing API for `fsn1` as of July 2026, in EUR:
+
+| Item                              | Qty | Net €/mo each | Net €/mo  |
+| --------------------------------- | --- | ------------- | --------- |
+| `cx23` server                     | 3   | 5.49          | 16.47     |
+| Primary IPv4                      | 3   | 0.50          | 1.50      |
+| Load balancer `lb11`              | 1   | 7.49          | 7.49      |
+| Private network, subnet, firewall, placement group, primary IPv6 | — | free | 0.00 |
+| **Total**                         |     |               | **25.46** |
+
+That is **€25.46/month net** (≈ €30.30 gross at 19 % VAT). Billing is
+per-hour, capped at the monthly price. Each server and the load balancer
+include 20 TB of outbound traffic (additional traffic €1.00/TB net); inbound
+and private network traffic are free.
+
 ## How provisioning works
 
 Hetzner offers no Talos image (and Packer is out of scope), so each server
