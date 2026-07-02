@@ -1,5 +1,6 @@
 # OpenTofu
 .terraform/
+tfplan
 *.tfstate
 *.tfstate.*
 *.tfvars
