@@ -30,6 +30,17 @@ data "talos_machine_configuration" "control_plane" {
           # Peer over the private network.
           advertisedSubnets = [var.subnet_cidr]
         }
+        network = {
+          cni = {
+            name = "flannel"
+            flannel = {
+              # Tunnel pod traffic over the private interface: the firewall
+              # drops VXLAN (UDP 4789) on the public interface, and pod
+              # traffic must stay on the private network anyway.
+              extraArgs = ["--iface=eth1"]
+            }
+          }
+        }
       }
       machine = {
         install = {
