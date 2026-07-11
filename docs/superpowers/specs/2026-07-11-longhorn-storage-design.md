@@ -66,13 +66,17 @@ name: longhorn
 provisioning:
   diskSelector:
     match: disk.model == "Volume" && !system_disk
+  minSize: 1GiB
+  grow: true
 ```
 
 Hetzner Cloud volumes attach as SCSI disks with model `Volume` (the guide's
 `disk.transport == 'nvme'` example does not apply to Hetzner). The selector
 is verified post-deploy with `talosctl get disks`. Talos partitions and
-formats the disk (xfs) and mounts it at `/var/mnt/longhorn`. No explicit
-size constraints: the user volume takes the whole 10 GB disk.
+formats the disk (xfs) and mounts it at `/var/mnt/longhorn`. Talos requires
+an explicit size bound (`minSize` or `maxSize`); the volume sets
+`minSize: 1GiB` with `grow: true`, taking the whole disk regardless of
+`longhorn_volume_size`.
 
 ### 4. Longhorn install — new `longhorn.tf`, providers in `versions.tf`
 

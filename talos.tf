@@ -81,6 +81,10 @@ data "talos_machine_configuration" "control_plane" {
         diskSelector = {
           match = "disk.model == 'Volume' && !system_disk"
         }
+        # Talos requires an explicit size bound; grow to fill the disk so the
+        # volume tracks longhorn_volume_size.
+        minSize = "1GiB"
+        grow    = true
       }
     }),
   ]
