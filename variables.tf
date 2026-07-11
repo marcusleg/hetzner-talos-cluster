@@ -57,6 +57,17 @@ variable "talos_schematic_id" {
   default     = "376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba"
 }
 
+variable "longhorn_volume_size" {
+  description = "Size in GB of the block storage volume attached to each node for Longhorn."
+  type        = number
+  default     = 10
+
+  validation {
+    condition     = var.longhorn_volume_size >= 10
+    error_message = "longhorn_volume_size must be at least 10 GB (Hetzner Cloud minimum volume size)."
+  }
+}
+
 locals {
   # Talos disk image for the Hetzner Cloud platform, served by the Image Factory.
   talos_image_url = "https://factory.talos.dev/image/${var.talos_schematic_id}/${var.talos_version}/hcloud-amd64.raw.xz"
