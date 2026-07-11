@@ -11,3 +11,4 @@ crash.*.log
 # Cluster credentials
 kubeconfig
 talosconfig
+.hcloud_token

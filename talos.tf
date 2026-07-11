@@ -30,6 +30,17 @@ data "talos_machine_configuration" "control_plane" {
           # Peer over the private network.
           advertisedSubnets = [var.subnet_cidr]
         }
+        network = {
+          cni = {
+            name = "flannel"
+            flannel = {
+              # Tunnel pod traffic over the private interface: the firewall
+              # drops VXLAN (UDP 4789) on the public interface, and pod
+              # traffic must stay on the private network anyway.
+              extraArgs = ["--iface=eth1"]
+            }
+          }
+        }
       }
       machine = {
         install = {
@@ -68,6 +79,24 @@ data "talos_machine_configuration" "control_plane" {
       apiVersion = "v1alpha1"
       kind       = "HostnameConfig"
       hostname   = local.control_plane_names[count.index]
+    }),
+    # Provision the attached Hetzner volume for Longhorn. Hetzner block
+    # storage volumes attach as SCSI disks with model "Volume"; Talos
+    # partitions and formats (xfs) the disk and mounts it, as user volume
+    # "longhorn", at /var/mnt/longhorn.
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "UserVolumeConfig"
+      name       = "longhorn"
+      provisioning = {
+        diskSelector = {
+          match = "disk.model == 'Volume' && !system_disk"
+        }
+        # Talos requires an explicit size bound; grow to fill the disk so the
+        # volume tracks longhorn_volume_size.
+        minSize = "1GiB"
+        grow    = true
+      }
     }),
   ]
 }
