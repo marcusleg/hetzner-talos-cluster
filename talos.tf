@@ -69,6 +69,20 @@ data "talos_machine_configuration" "control_plane" {
       kind       = "HostnameConfig"
       hostname   = local.control_plane_names[count.index]
     }),
+    # Provision the attached Hetzner volume for Longhorn. Hetzner block
+    # storage volumes attach as SCSI disks with model "Volume"; Talos
+    # partitions and formats (xfs) the disk and mounts it, as user volume
+    # "longhorn", at /var/mnt/longhorn.
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "UserVolumeConfig"
+      name       = "longhorn"
+      provisioning = {
+        diskSelector = {
+          match = "disk.model == 'Volume' && !system_disk"
+        }
+      }
+    }),
   ]
 }
 

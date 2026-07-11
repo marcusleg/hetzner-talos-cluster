@@ -52,9 +52,9 @@ variable "talos_version" {
 }
 
 variable "talos_schematic_id" {
-  description = "Talos Image Factory schematic ID (default: stock image, no extensions)."
+  description = "Talos Image Factory schematic ID (default: siderolabs/iscsi-tools + siderolabs/util-linux-tools, required by Longhorn)."
   type        = string
-  default     = "376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba"
+  default     = "613e1592b2da41ae5e265e8789429f22e121aab91cb4deb6bc3c0b6262961245"
 }
 
 variable "longhorn_volume_size" {
